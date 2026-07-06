@@ -1,0 +1,9 @@
+# ignore zip files
+*.zip
+
+# ignore log files
+*.log
+
+#ignore output files
+*.out
+output/
