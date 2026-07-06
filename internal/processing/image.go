@@ -90,24 +90,7 @@ func min(a, b float64) float64 {
 	return b
 }
 
-/*
-func Resize(img image.Image, w, h int) image.Image {
-	dst := image.NewRGBA(image.Rect(0, 0, w, h))
-
-	draw.CatmullRom.Scale(
-		dst,
-		dst.Bounds(),
-		img,
-		img.Bounds(),
-		draw.Over,
-		nil,
-	)
-
-	return dst
-}
-*/
-
-func LoadImage(path string) (image.Image, error) {
+func LoadSourceImage(path string) (image.Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -121,25 +104,6 @@ func LoadImage(path string) (image.Image, error) {
 
 	return img, nil
 }
-
-/*
-// deprecated
-func SavePNG(img image.Image, output string) error {
-	if err := os.MkdirAll(filepath.Dir(output), 0755); err != nil {
-		return err
-	}
-
-	f, err := os.Create(output)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	//log.Printf("Saving image: %s to %s\n", output, f.Name())
-
-	return png.Encode(f, img)
-}
-*/
 
 func EncodePNG(w io.Writer, img image.Image) error {
 	return png.Encode(w, img)

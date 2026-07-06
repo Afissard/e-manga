@@ -4,6 +4,8 @@
 # ignore log files
 *.log
 
+# ignore cache files
+cache/
 
 # ignore exe files
 *.exe

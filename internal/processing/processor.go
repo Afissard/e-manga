@@ -4,6 +4,7 @@ import (
 	"e-manga/internal/config"
 	"e-manga/internal/library"
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"path/filepath"
@@ -48,24 +49,14 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 
 	for _, chapter := range manga.Chapters {
 		for _, filename := range chapter.Images {
-			path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
 
-			img, err := LoadImage(path)
+			img, err := manga.LoadImageFromCache(chapter.Name, filename)
 			if err != nil {
-				log.Fatalf("failed to load image %s: %v", path, err)
-				return err
-			}
-
-			if !opts.Target.Color {
-				img = Grayscale(img)
-			}
-
-			if opts.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
-				img = Rotate90CW(img)
-			}
-
-			if opts.Target.Width > 0 {
-				img = Resize(img, opts.Target.Width, opts.Target.Height)
+				log.Printf("Failed to load image %s from cache for manga %s, chapter %s. Reprocessing.", filename, manga.Title, chapter.Name)
+				img, err = ProcessImage(manga, &chapter, filename, opts)
+				if err != nil {
+					return err
+				}
 			}
 
 			name := fmt.Sprintf("%06d.png", index)
@@ -90,4 +81,34 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 
 	log.Printf("Successfully created CBZ file: %s", manga.Title+".cbz")
 	return nil
+}
+
+func ProcessImage(manga *library.Manga, chapter *library.Chapter, filename string, opts Options) (img image.Image, err error) {
+	log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
+
+	path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
+
+	img, err = LoadSourceImage(path)
+	if err != nil {
+		log.Fatalf("failed to load image %s: %v", path, err)
+		return nil, err
+	}
+
+	if !opts.Target.Color {
+		img = Grayscale(img)
+	}
+
+	if opts.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
+		img = Rotate90CW(img)
+	}
+
+	if opts.Target.Width > 0 {
+		img = Resize(img, opts.Target.Width, opts.Target.Height)
+	}
+
+	
+	filename = filename[:len(filename)-len(filepath.Ext(filename))]+".png"
+	manga.SaveImageToCache(chapter.Name, filename, img)
+
+	return img, nil
 }
