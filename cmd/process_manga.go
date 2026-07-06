@@ -15,5 +15,5 @@ func ProcessManga(manga string, targetName string) error {
 		Target: target,
 	}
 
-	return processing.Process(manga, processing.OutputPath(manga), opts)
+	return processing.ProcessToCBZ(manga, opts)
 }

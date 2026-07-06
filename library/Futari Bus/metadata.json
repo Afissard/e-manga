@@ -1,0 +1,18 @@
+{
+    "name": "Futari Bus",
+    "target": "Kindle Paperwhite Gen 7",
+    "chapters": {
+        "Ch. 1": {
+            "id": "",
+            "name": "Ch. 1",
+            "checksum": "",
+            "pageCount": 25
+        },
+        "Ch. 2": {
+            "id": "",
+            "name": "Ch. 2",
+            "checksum": "",
+            "pageCount": 17
+        }
+    }
+}

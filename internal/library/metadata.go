@@ -1,15 +1,51 @@
 package library
 
-type Metadata struct {
-	Name     string                     `json:"name"`
-	Target   string                     `json:"target"`
-	Chapters map[string]ChapterMetadata `json:"chapters"`
+import (
+	"encoding/json"
+	"os"
+)
+
+func (m *Manga) LoadMetadata() error {
+	path := m.MetadataPath()
+
+	_, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		m.Metadata = MangaMetadata{
+			Name:     m.Title,
+			Target:   "",
+			Chapters: make(map[string]ChapterMetadata),
+		}
+
+		return m.Save()
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, &m.Metadata)
 }
 
-type ChapterMetadata struct {
-	ID        string `json:"id"`   // e.g. "001", "057", "100.5"
-	Name      string `json:"name"` // Display name or folder name
-	Checksum  string `json:"checksum"`
-	PageCount int    `json:"pageCount"`
-	Processed bool   `json:"processed"`
+func (m *Manga) Save() error {
+	data, err := json.MarshalIndent(m.Metadata, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(m.MetadataPath(), data, 0644)
+}
+
+func (m *Manga) UpdateMetadata(target string) error {
+	m.Metadata.Target = target
+	m.Metadata.Chapters = make(map[string]ChapterMetadata)
+	for _, chapter := range m.Chapters {
+		m.Metadata.Chapters[chapter.Name] = ChapterMetadata{
+			Name:      chapter.Name,
+			PageCount: len(chapter.Images),
+		}
+	}
+
+	return m.Save()
 }

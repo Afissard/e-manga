@@ -1,23 +1,40 @@
 package processing
 
 import (
+	"e-manga/internal/config"
+	"e-manga/internal/library"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 )
 
-func Process(inputDir, outputCBZ string, opts Options) error {
-	log.Printf("Processing manga from %s to %s with options: %+v", inputDir, outputCBZ, opts)
-	
-	chapters, err := LoadChapters(GetSourceDir(inputDir))
+type Options struct {
+	Target     config.Target
+	AutoRotate bool
+}
+
+func ProcessToCBZ(mangaName string, opts Options) error {
+	log.Printf("Processing manga from %s to CBZ with options: %+v", mangaName, opts)
+
+	// Loading manga
+	manga, err := library.LoadManga(mangaName)
 	if err != nil {
-		log.Fatalf("failed to load chapters: %v", err)
+		log.Fatalf("failed to load manga: %v", err)
 		return err
 	}
-	log.Printf("Loaded %d chapters from %s", len(chapters), inputDir)
+	manga.LoadMetadata()
 
-	out, err := os.Create(outputCBZ + ".cbz")
+	// Compare source and metadata, update if necessary
+	if len(manga.Chapters) != len(manga.Metadata.Chapters) || manga.Metadata.Target != opts.Target.Name {
+		log.Printf("Metadata are outdated. Updating metadata for manga: %s", mangaName)
+		manga.UpdateMetadata(opts.Target.Name)
+	} else {
+		log.Printf("Metadata are up-to-date for manga: %s", mangaName)
+	}
+
+	// Creating output
+	out, err := os.Create(filepath.Join(manga.OutputDir(), manga.Title+".cbz"))
 	if err != nil {
 		log.Fatalf("failed to create output file: %v", err)
 		return err
@@ -29,9 +46,9 @@ func Process(inputDir, outputCBZ string, opts Options) error {
 
 	index := 1
 
-	for _, chapter := range chapters {
+	for _, chapter := range manga.Chapters {
 		for _, filename := range chapter.Images {
-			path := filepath.Join(GetSourceDir(inputDir), chapter.Name, filename)
+			path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
 
 			img, err := LoadImage(path)
 			if err != nil {
@@ -59,8 +76,18 @@ func Process(inputDir, outputCBZ string, opts Options) error {
 				return err
 			}
 		}
+		// Update chapter metadata
+		chapterMetadata := manga.Metadata.Chapters[chapter.Name]
+		chapterMetadata.PageCount = len(chapter.Images)
+		manga.Metadata.Chapters[chapter.Name] = chapterMetadata
 	}
 
-	log.Printf("Successfully created CBZ file: %s", outputCBZ+".cbz")
+	// Save updated metadata
+	if err := manga.Save(); err != nil {
+		log.Fatalf("failed to save metadata: %v", err)
+		return err
+	}
+
+	log.Printf("Successfully created CBZ file: %s", manga.Title+".cbz")
 	return nil
 }
