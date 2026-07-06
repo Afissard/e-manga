@@ -4,6 +4,6 @@
 # ignore log files
 *.log
 
-#ignore output files
-*.out
-output/
+
+# ignore exe files
+*.exe

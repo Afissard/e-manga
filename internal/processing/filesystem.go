@@ -1,6 +1,7 @@
 package processing
 
 import (
+	"e-manga/internal/config"
 	"os"
 	"path/filepath"
 )
@@ -12,28 +13,73 @@ Wrapper around filesystem operations.
 - remove temporary data
 */
 
-const TempDir = "temp"
-const OutputDir = "output"
-
-func TempPath(root string) string {
-	_, folder := filepath.Split(root)
-	return filepath.Join(TempDir, folder)
-}
-
-func CreateOutputDir() error {
-	if _, err := os.Stat(OutputDir); os.IsNotExist(err) {
-		return os.MkdirAll(OutputDir, 0755)
+func CreateLibraryDir() error {
+	if _, err := os.Stat(config.AppConfig.LibraryPath); os.IsNotExist(err) {
+		return os.MkdirAll(config.AppConfig.LibraryPath, 0755)
 	}
 	return nil
 }
 
-func OutputPath(root string) string {
+// in the library, create a new directory for the book, with a source folder, a cache folder and a metadata.json file and a output folder
+func CreateNewBookDir(root string) (string, error) {
 	_, folder := filepath.Split(root)
-	return filepath.Join(OutputDir, folder)
+	bookDir := filepath.Join(config.AppConfig.LibraryPath, folder)
+
+	if _, err := os.Stat(bookDir); os.IsNotExist(err) {
+		err := os.MkdirAll(bookDir, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	sourceDir := filepath.Join(bookDir, "source")
+	if _, err := os.Stat(sourceDir); os.IsNotExist(err) {
+		err := os.MkdirAll(sourceDir, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	cacheDir := filepath.Join(bookDir, "cache")
+	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+		err := os.MkdirAll(cacheDir, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	outputDir := filepath.Join(bookDir, "output")
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		err := os.MkdirAll(outputDir, 0755)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return bookDir, nil
 }
 
-/*
-func outputPath(outputRoot, chapter, filename string) string {
-	return filepath.Join(outputRoot, chapter, filename)
+func OutputPath(root string) string {
+	_, folder := filepath.Split(root)
+	return filepath.Join(config.AppConfig.LibraryPath, folder, "output/", folder)
 }
-*/
+
+func GetBookDir(root string) string {
+	_, folder := filepath.Split(root)
+	return filepath.Join(config.AppConfig.LibraryPath, folder)
+}
+
+func GetSourceDir(root string) string {
+	_, folder := filepath.Split(root)
+	return filepath.Join(config.AppConfig.LibraryPath, folder, "source")
+}
+
+func GetCacheDir(root string) string {
+	_, folder := filepath.Split(root)
+	return filepath.Join(config.AppConfig.LibraryPath, folder, "cache")
+}
+
+func GetOutputDir(root string) string {
+	_, folder := filepath.Split(root)
+	return filepath.Join(config.AppConfig.LibraryPath, folder, "output")
+}

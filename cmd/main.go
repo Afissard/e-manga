@@ -2,31 +2,48 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-
-	"e-manga/internal/config"
-	"e-manga/internal/processing"
+	"os"
 )
 
 func main() {
-	input := flag.String("input", "", "Path to the manga folder")
-	targetFlag := flag.String("target", "none", "Target device for resizing images (e.g., 'kindle-paperwhite-7')")
-
-	flag.Parse()
-
-	target, ok := config.Targets[*targetFlag]
-	if !ok {
-		log.Fatalf("unknown target: %s", *targetFlag)
+	if len(os.Args) < 2 {
+		log.Fatal("expected 'new-manga' or 'process' subcommands")
 	}
 
-	opts := processing.Options{
-		Target: target,
-	}
+	switch os.Args[1] {
+	case "new-manga":
+		fs := flag.NewFlagSet("new-manga", flag.ExitOnError)
+		name := fs.String("name", "", "manga name")
 
-	processing.CreateOutputDir()
-	err := processing.Process(*input, processing.OutputPath(*input), opts)
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
 
-	if err != nil {
-		log.Fatal(err)
+		if err := NewManga(*name); err != nil {
+			log.Fatal(err)
+		}
+
+	case "process":
+		fs := flag.NewFlagSet("process", flag.ExitOnError)
+		manga := fs.String("manga", "", "manga name")
+		target := fs.String("target", "none", "Target device for resizing images")
+
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+
+		if err := ProcessManga(*manga, *target); err != nil {
+			log.Fatal(err)
+		}
+
+	default:
+		log.Fatal("expected 'new-manga' or 'process' subcommands")
+		// TODO: later, load a tui for the app
 	}
+}
+
+func logErrorf(format string, args ...any) error {
+	return fmt.Errorf(format, args...)
 }

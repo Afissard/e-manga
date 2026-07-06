@@ -2,18 +2,24 @@ package processing
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 )
 
 func Process(inputDir, outputCBZ string, opts Options) error {
-	chapters, err := LoadChapters(inputDir)
+	log.Printf("Processing manga from %s to %s with options: %+v", inputDir, outputCBZ, opts)
+	
+	chapters, err := LoadChapters(GetSourceDir(inputDir))
 	if err != nil {
+		log.Fatalf("failed to load chapters: %v", err)
 		return err
 	}
+	log.Printf("Loaded %d chapters from %s", len(chapters), inputDir)
 
 	out, err := os.Create(outputCBZ + ".cbz")
 	if err != nil {
+		log.Fatalf("failed to create output file: %v", err)
 		return err
 	}
 	defer out.Close()
@@ -25,14 +31,17 @@ func Process(inputDir, outputCBZ string, opts Options) error {
 
 	for _, chapter := range chapters {
 		for _, filename := range chapter.Images {
-			path := filepath.Join(inputDir, chapter.Name, filename)
+			path := filepath.Join(GetSourceDir(inputDir), chapter.Name, filename)
 
 			img, err := LoadImage(path)
 			if err != nil {
+				log.Fatalf("failed to load image %s: %v", path, err)
 				return err
 			}
 
-			img = Grayscale(img)
+			if !opts.Target.Color {
+				img = Grayscale(img)
+			}
 
 			if opts.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
 				img = Rotate90CW(img)
@@ -46,10 +55,12 @@ func Process(inputDir, outputCBZ string, opts Options) error {
 			index++
 
 			if err := cbz.AddImage(name, img); err != nil {
+				log.Fatalf("failed to add image %s to CBZ: %v", name, err)
 				return err
 			}
 		}
 	}
 
+	log.Printf("Successfully created CBZ file: %s", outputCBZ+".cbz")
 	return nil
 }
