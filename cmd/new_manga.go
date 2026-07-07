@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-func NewManga(name string, url string) error {
+func NewManga(name, author, summary, cover, target, url string, leftToRight bool) error {
 	if _, err := os.Stat(config.AppConfig.LibraryPath); os.IsNotExist(err) {
 		return os.MkdirAll(config.AppConfig.LibraryPath, 0755)
 	}
 
 	manga := &library.Manga{}
-	err := manga.Init(name)
+	err := manga.Init(name, author, summary, cover, target, url, leftToRight)
 	if err != nil {
 		return err
 	}

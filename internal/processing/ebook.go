@@ -34,4 +34,4 @@ func (c *CBZWriter) AddImage(name string, img image.Image) error {
 
 func (c *CBZWriter) Close() error {
 	return c.zip.Close()
-}	
+}

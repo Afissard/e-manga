@@ -16,13 +16,18 @@ func main() {
 	case "new-manga":
 		fs := flag.NewFlagSet("new-manga", flag.ExitOnError)
 		name := fs.String("name", "", "manga name")
+		author := fs.String("author", "", "manga author")
+		summary := fs.String("summary", "", "manga summary")
+		cover := fs.String("cover", "", "manga cover image path")
+		target := fs.String("target", "", "Target device for resizing images")
 		url := fs.String("url", "", "manga url")
+		leftToRight := fs.Bool("left-to-right", false, "Set reading direction to left-to-right")
 
 		if err := fs.Parse(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := NewManga(*name, *url); err != nil {
+		if err := NewManga(*name, *author, *summary, *cover, *target, *url, *leftToRight); err != nil {
 			log.Fatal(err)
 		}
 
@@ -36,6 +41,24 @@ func main() {
 		}
 
 		if err := ProcessManga(*manga, *target); err != nil {
+			log.Fatal(err)
+		}
+
+	case "update-metadata":
+		fs := flag.NewFlagSet("update-metadata", flag.ExitOnError)
+		manga := fs.String("manga", "", "manga name")
+		author := fs.String("author", "", "manga author")
+		summary := fs.String("summary", "", "manga summary")
+		cover := fs.String("cover", "", "manga cover image path")
+		target := fs.String("target", "", "Target device for resizing images")
+		url := fs.String("url", "", "manga url")
+		leftToRight := fs.Bool("left-to-right", false, "Set reading direction to left-to-right")
+
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			log.Fatal(err)
+		}
+
+		if err := UpdateMangaMetadata(*manga, *author, *summary, *cover, *target, *url, *leftToRight); err != nil {
 			log.Fatal(err)
 		}
 

@@ -2,6 +2,7 @@ package library
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -12,7 +13,7 @@ func (m *Manga) LoadMetadata() error {
 
 	if os.IsNotExist(err) {
 		m.Metadata = MangaMetadata{
-			Name:     m.Title,
+			Title:    m.Title,
 			Target:   "",
 			Chapters: make(map[string]ChapterMetadata),
 		}
@@ -25,7 +26,21 @@ func (m *Manga) LoadMetadata() error {
 		return err
 	}
 
-	return json.Unmarshal(data, &m.Metadata)
+	err = json.Unmarshal(data, &m.Metadata)
+	if err != nil {
+		return err
+	}
+
+	m.Author = m.Metadata.Author
+	m.Summary = m.Metadata.Summary
+	m.Cover = m.Metadata.Cover
+	m.URL = m.Metadata.URL
+	m.LeftToRight = m.Metadata.LeftToRight
+
+	// Log all Manga info
+	log.Printf("Manga loaded:\nTitle: %s\nAuthor: %s\nSummary: %s\nCover: %s\nURL: %s", m.Title, m.Author, m.Summary, m.Cover, m.URL)
+
+	return nil
 }
 
 func (m *Manga) Save() error {
@@ -37,8 +52,33 @@ func (m *Manga) Save() error {
 	return os.WriteFile(m.MetadataPath(), data, 0644)
 }
 
-func (m *Manga) UpdateMetadata(target string) error {
+func (m *Manga) UpdateMetadata(author, summary, cover, target, url string, leftToRight bool) error {
+	if author == "" {
+		author = m.Metadata.Author
+	}
+	if summary == "" {
+		summary = m.Metadata.Summary
+	}
+	if cover == "" {
+		cover = m.Metadata.Cover
+	}
+	if target == "" {
+		target = m.Metadata.Target
+	}
+	if url == "" {
+		url = m.Metadata.URL
+	}
+	if !leftToRight {
+		leftToRight = m.Metadata.LeftToRight
+	}
+
+	m.Metadata.Title = m.Title
+	m.Metadata.Author = author
+	m.Metadata.Summary = summary
+	m.Metadata.Cover = cover
 	m.Metadata.Target = target
+	m.Metadata.URL = url
+	m.Metadata.LeftToRight = leftToRight
 	m.Metadata.Chapters = make(map[string]ChapterMetadata)
 	for _, chapter := range m.Chapters {
 		m.Metadata.Chapters[chapter.Name] = ChapterMetadata{
@@ -48,4 +88,12 @@ func (m *Manga) UpdateMetadata(target string) error {
 	}
 
 	return m.Save()
+}
+
+func (m *Manga) UpdateComicInfo() error {
+	m.ComicInfo.Title = m.Metadata.Title
+	m.ComicInfo.Author = m.Metadata.Author
+	m.ComicInfo.Summary = m.Metadata.Summary
+	m.ComicInfo.Manga = true
+	return nil
 }
