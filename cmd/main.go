@@ -16,12 +16,13 @@ func main() {
 	case "new-manga":
 		fs := flag.NewFlagSet("new-manga", flag.ExitOnError)
 		name := fs.String("name", "", "manga name")
+		url := fs.String("url", "", "manga url")
 
 		if err := fs.Parse(os.Args[2:]); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := NewManga(*name); err != nil {
+		if err := NewManga(*name, *url); err != nil {
 			log.Fatal(err)
 		}
 

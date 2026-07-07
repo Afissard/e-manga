@@ -2,4 +2,12 @@ module e-manga
 
 go 1.26.4
 
-require golang.org/x/image v0.43.0
+require (
+	github.com/PuerkitoBio/goquery v1.12.0
+	golang.org/x/image v0.43.0
+)
+
+require (
+	github.com/andybalholm/cascadia v1.3.3 // indirect
+	golang.org/x/net v0.52.0 // indirect
+)

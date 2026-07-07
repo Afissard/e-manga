@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func NewManga(name string) error {
+func NewManga(name string, url string) error {
 	if _, err := os.Stat(config.AppConfig.LibraryPath); os.IsNotExist(err) {
 		return os.MkdirAll(config.AppConfig.LibraryPath, 0755)
 	}
@@ -16,6 +16,13 @@ func NewManga(name string) error {
 	if err != nil {
 		return err
 	}
+
+	/*
+		err = scraper.ScrapDemo(url)
+		if err != nil {
+			return err
+		}
+	*/
 
 	return nil
 }
