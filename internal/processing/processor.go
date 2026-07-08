@@ -25,7 +25,6 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		return err
 	}
 	manga.LoadMetadata()
-	manga.UpdateComicInfo()
 
 	// Compare source and metadata, update if necessary
 	if len(manga.Chapters) != len(manga.Metadata.Chapters) || manga.Metadata.Target != opts.Target.Name {
@@ -54,7 +53,8 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 			log.Printf("Failed to load cover image %s for manga %s. Skipping cover.", manga.Cover, manga.Title)
 		} else {
 			coverImg = imageTraitment(coverImg, opts)
-			if err := cbz.AddImage("0000", coverImg); err != nil {
+			err := cbz.AddImage("0000.png", coverImg)
+			if err != nil {
 				log.Fatalf("failed to add cover image to CBZ: %v", err)
 				return err
 			} else {
@@ -65,17 +65,10 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		log.Printf("No cover image specified for manga %s. Skipping cover.", manga.Title)
 	}
 
-	// Generate ComicInfo.xml and add to CBZ
-	if err := cbz.GenerateComicInfoXML(&manga.ComicInfo); err != nil {
-		log.Fatalf("failed to generate ComicInfo.xml: %v", err)
-		return err
-	} else {
-		log.Printf("Successfully generated ComicInfo.xml for manga %s.", manga.Title)
-	}
-
 	// Add chapters and images to CBZ
 	index := 1
 	for _, chapter := range manga.Chapters {
+		// TODO: add concurrency for processing images with goroutines and channels
 		for _, filename := range chapter.Images {
 
 			img, err := manga.LoadImageFromCache(chapter.Name, filename)
@@ -103,6 +96,14 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		manga.Metadata.Chapters[chapter.Name] = chapterMetadata
 	}
 
+	// Generate ComicInfo.xml and add to CBZ
+	if err := cbz.GenerateComicInfoXML(manga); err != nil {
+		log.Fatalf("failed to generate ComicInfo.xml: %v", err)
+		return err
+	} else {
+		log.Printf("Successfully generated ComicInfo.xml for manga %s.", manga.Title)
+	}
+
 	// Save updated metadata
 	if err := manga.Save(); err != nil {
 		log.Fatalf("failed to save metadata: %v", err)
@@ -123,20 +124,6 @@ func ProcessImage(manga *library.Manga, chapter *library.Chapter, filename strin
 		log.Fatalf("failed to load image %s: %v", path, err)
 		return nil, err
 	}
-
-	/*
-		if !opts.Target.Color {
-			img = Grayscale(img)
-		}
-
-		if opts.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
-			img = Rotate90CW(img)
-		}
-
-		if opts.Target.Width > 0 {
-			img = Resize(img, opts.Target.Width, opts.Target.Height)
-		}
-	*/
 
 	img = imageTraitment(img, opts)
 

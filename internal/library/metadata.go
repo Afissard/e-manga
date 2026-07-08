@@ -90,10 +90,3 @@ func (m *Manga) UpdateMetadata(author, summary, cover, target, url string, leftT
 	return m.Save()
 }
 
-func (m *Manga) UpdateComicInfo() error {
-	m.ComicInfo.Title = m.Metadata.Title
-	m.ComicInfo.Author = m.Metadata.Author
-	m.ComicInfo.Summary = m.Metadata.Summary
-	m.ComicInfo.Manga = true
-	return nil
-}

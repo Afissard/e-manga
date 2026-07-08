@@ -6,10 +6,10 @@ type Manga struct {
 	Summary     string
 	Cover       string
 	URL         string
+	Language    string
 	LeftToRight bool
 	Chapters    []Chapter
 	Metadata    MangaMetadata
-	ComicInfo   ComicInfo
 }
 
 type MangaMetadata struct {
@@ -36,18 +36,4 @@ type ChapterMetadata struct {
 	Name      string `json:"name"`
 	Checksum  string `json:"checksum"`
 	PageCount int    `json:"pageCount"`
-}
-
-type ComicInfo struct {
-	Title    string
-	Author   string
-	Summary  string
-	Language string
-	Manga    bool
-	Chapters []Bookmark
-}
-
-type Bookmark struct {
-	Name      string
-	PageCount int
 }

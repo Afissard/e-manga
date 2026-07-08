@@ -7,5 +7,8 @@
 # ignore cache files
 cache/
 
+# ignore library source folder
+library/source/
+
 # ignore exe files
 *.exe
