@@ -4,11 +4,8 @@
 # ignore log files
 *.log
 
-# ignore cache files
-cache/
-
-# ignore library source folder
-library/source/
+# ignore library folder
+library/
 
 # ignore exe files
 *.exe
