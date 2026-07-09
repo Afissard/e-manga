@@ -23,7 +23,7 @@ type pageResult struct {
 }
 
 func ProcessToCBZ(mangaName string, opts Options) error {
-	log.Printf("Processing manga from %s to CBZ with options: %+v", mangaName, opts)
+	log.Printf("Processing manga %s to CBZ with options: %+v", mangaName, opts)
 
 	// Loading manga
 	manga, err := library.LoadManga(mangaName)
@@ -41,7 +41,7 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		log.Printf("Metadata are up-to-date for manga: %s", mangaName)
 	}
 
-	// Creating output
+	// Creating output file
 	out, err := os.Create(filepath.Join(manga.OutputDir(), manga.Title+".cbz"))
 	if err != nil {
 		log.Fatalf("failed to create output file: %v", err)
@@ -139,41 +139,6 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	log.Printf("Successfully created CBZ file: %s", manga.Title+".cbz")
 	return nil
 }
-
-/*
-func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, opts Options, index int, cbz *CBZWriter) error {
-	img, err := manga.LoadImageFromCache(chapter.Name, filename)
-	if err != nil {
-		log.Printf("Failed to load image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
-		log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
-
-		path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
-
-		img, err = LoadSourceImage(path)
-		if err != nil {
-			log.Fatalf("failed to load image %s: %v", path, err)
-			return err
-		}
-
-		img = imageTraitment(img, opts)
-
-		filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".png"
-		manga.SaveImageToCache(chapter.Name, filename, img)
-
-	} else {
-		log.Printf("Loaded image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
-	}
-
-	name := fmt.Sprintf("%06d.png", index)
-
-	if err := cbz.AddImage(name, img); err != nil {
-		log.Fatalf("failed to add image %s to CBZ: %v", name, err)
-		return err
-	}
-
-	return nil
-}
-*/
 
 func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, opts Options) (image.Image, error) {
 	img, err := manga.LoadImageFromCache(chapter.Name, filename)
