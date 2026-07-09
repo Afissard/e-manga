@@ -3,12 +3,13 @@ package main
 import (
 	"e-manga/internal/config"
 	"e-manga/internal/processing"
+	"log"
 )
 
 func ProcessManga(manga string, targetName string) error {
 	target, ok := config.Targets[targetName]
 	if !ok {
-		return logErrorf("unknown target: %s", targetName)
+		log.Fatalf("unknown target: %s", targetName)
 	}
 
 	opts := processing.Options{

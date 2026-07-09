@@ -8,11 +8,18 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type Options struct {
 	Target     config.Target
 	AutoRotate bool
+}
+
+type pageResult struct {
+	index int
+	img   image.Image
+	err   error
 }
 
 func ProcessToCBZ(mangaName string, opts Options) error {
@@ -66,34 +73,53 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	}
 
 	// Add chapters and images to CBZ
+	results := make(chan pageResult)
+	var wg sync.WaitGroup
 	index := 1
 	for _, chapter := range manga.Chapters {
-		// TODO: add concurrency for processing images with goroutines and channels
+		chapter := chapter
 		for _, filename := range chapter.Images {
+			filename := filename
+            pageIndex := index
 
-			img, err := manga.LoadImageFromCache(chapter.Name, filename)
-			if err != nil {
-				log.Printf("Failed to load image %s from cache for manga %s, chapter %s. Reprocessing.", filename, manga.Title, chapter.Name)
-				img, err = ProcessImage(manga, &chapter, filename, opts)
-				if err != nil {
-					return err
-				}
-			} else {
-				log.Printf("Loaded image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
-			}
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				img, err := GetPageImageToCBZ(manga, &chapter, filename, opts)
+				results <- pageResult{index: pageIndex, img: img, err: err}
+			}()
 
-			name := fmt.Sprintf("%06d.png", index)
+			//GetPageImageToCBZ(manga, &chapter, filename, opts, index, cbz)
 			index++
-
-			if err := cbz.AddImage(name, img); err != nil {
-				log.Fatalf("failed to add image %s to CBZ: %v", name, err)
-				return err
-			}
 		}
 		// Update chapter metadata
 		chapterMetadata := manga.Metadata.Chapters[chapter.Name]
 		chapterMetadata.PageCount = len(chapter.Images)
 		manga.Metadata.Chapters[chapter.Name] = chapterMetadata
+	}
+	// Wait for all images to be processed
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	
+	// Collect results and add images to CBZ
+	pages := make(map[int]image.Image, index-1)
+	for res := range results {
+		if res.err != nil {
+			log.Fatalf("failed to process image n°%d: %v", res.index, res.err)
+		}
+		pages[res.index] = res.img
+	}
+
+	for i := 1; i < index; i++ {
+		name := fmt.Sprintf("%06d.png", i)
+		if err := cbz.AddImage(name, pages[i]); err != nil {
+			log.Fatalf("failed to add image %s to CBZ: %v", name, err)
+			return err
+		} else {
+			log.Printf("Added image %s to CBZ for manga %s.", name, manga.Title)
+		}
 	}
 
 	// Generate ComicInfo.xml and add to CBZ
@@ -114,21 +140,61 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	return nil
 }
 
-func ProcessImage(manga *library.Manga, chapter *library.Chapter, filename string, opts Options) (img image.Image, err error) {
-	log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
-
-	path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
-
-	img, err = LoadSourceImage(path)
+/*
+func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, opts Options, index int, cbz *CBZWriter) error {
+	img, err := manga.LoadImageFromCache(chapter.Name, filename)
 	if err != nil {
-		log.Fatalf("failed to load image %s: %v", path, err)
-		return nil, err
+		log.Printf("Failed to load image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
+		log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
+
+		path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
+
+		img, err = LoadSourceImage(path)
+		if err != nil {
+			log.Fatalf("failed to load image %s: %v", path, err)
+			return err
+		}
+
+		img = imageTraitment(img, opts)
+
+		filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".png"
+		manga.SaveImageToCache(chapter.Name, filename, img)
+
+	} else {
+		log.Printf("Loaded image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
 	}
 
-	img = imageTraitment(img, opts)
+	name := fmt.Sprintf("%06d.png", index)
 
-	filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".png"
-	manga.SaveImageToCache(chapter.Name, filename, img)
+	if err := cbz.AddImage(name, img); err != nil {
+		log.Fatalf("failed to add image %s to CBZ: %v", name, err)
+		return err
+	}
+
+	return nil
+}
+*/
+
+func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, opts Options) (image.Image, error) {
+	img, err := manga.LoadImageFromCache(chapter.Name, filename)
+	if err != nil {
+		log.Printf("Failed to load image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
+		log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
+
+		path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
+
+		img, err = LoadSourceImage(path)
+		if err != nil {
+			return nil, err
+		}
+
+		img = imageTraitment(img, opts)
+
+		filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".png"
+		manga.SaveImageToCache(chapter.Name, filename, img)
+	} else {
+		log.Printf("Loaded image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
+	}
 
 	return img, nil
 }

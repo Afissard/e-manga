@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 )
@@ -66,8 +65,4 @@ func main() {
 		log.Fatal("expected 'new-manga' or 'process' subcommands")
 		// TODO: later, load a tui for the app
 	}
-}
-
-func logErrorf(format string, args ...any) error {
-	return fmt.Errorf(format, args...)
 }
