@@ -7,7 +7,6 @@ type UpdateMangaMetadataOptions struct {
 	Author      string
 	Summary     string
 	Cover       string
-	Target      string
 	URL         string
 	LeftToRight bool
 }
@@ -17,5 +16,5 @@ func UpdateMangaMetadata(opts UpdateMangaMetadataOptions) error {
 	if err != nil {
 		return err
 	}
-	return manga.UpdateMetadata(opts.Author, opts.Summary, opts.Cover, opts.Target, opts.URL, opts.LeftToRight)
+	return manga.UpdateMetadata(opts.Author, opts.Summary, opts.Cover, opts.URL, opts.LeftToRight)
 }

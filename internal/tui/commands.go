@@ -93,7 +93,6 @@ func (m model) runSelectedCommand() tea.Cmd {
 			Author:      values["Author"],
 			Summary:     values["Summary"],
 			Cover:       values["Cover"],
-			Target:      values["Target"],
 			URL:         values["URL"],
 			LeftToRight: values["Left To Right (true/false)"] == "true",
 		}

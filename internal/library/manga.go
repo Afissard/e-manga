@@ -28,7 +28,7 @@ func (m *Manga) Init(title, author, summary, cover, target, url string, leftToRi
 	}
 
 	m.LoadMetadata()
-	m.UpdateMetadata(author, summary, cover, target, url, leftToRight)
+	m.UpdateMetadata(author, summary, cover, url, leftToRight)
 
 	return nil
 }

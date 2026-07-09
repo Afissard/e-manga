@@ -75,7 +75,6 @@ func main() {
 		author := *fs.String("author", "", "manga author")
 		summary := *fs.String("summary", "", "manga summary")
 		cover := *fs.String("cover", "", "manga cover image path")
-		target := *fs.String("target", "", "Target device for resizing images")
 		URL := *fs.String("url", "", "manga url")
 		leftToRight := *fs.Bool("left-to-right", false, "Set reading direction to left-to-right")
 
@@ -88,7 +87,6 @@ func main() {
 			Author:      author,
 			Summary:     summary,
 			Cover:       cover,
-			Target:      target,
 			URL:         URL,
 			LeftToRight: leftToRight,
 		}

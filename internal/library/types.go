@@ -10,6 +10,7 @@ type Manga struct {
 	LeftToRight bool
 	Chapters    []Chapter
 	Metadata    MangaMetadata
+	Target      string
 }
 
 type MangaMetadata struct {
@@ -19,7 +20,6 @@ type MangaMetadata struct {
 	Cover       string                     `json:"cover"`
 	URL         string                     `json:"url"`
 	LeftToRight bool                       `json:"leftToRight"`
-	Target      string                     `json:"target"`
 	Chapters    map[string]ChapterMetadata `json:"chapters"`
 }
 

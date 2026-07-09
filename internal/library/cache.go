@@ -8,7 +8,7 @@ import (
 )
 
 func getCachedFilePath(manga *Manga, chapterName, filename string) string {
-	return filepath.Join(manga.CacheDir(), manga.Metadata.Target, chapterName, filename)
+	return filepath.Join(manga.CacheDir(), manga.Target, chapterName, filename)
 }
 
 func (m *Manga) SaveImageToCache(chapterName, filename string, img image.Image) error {

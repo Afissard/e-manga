@@ -94,7 +94,7 @@ func (c *CBZWriter) GenerateComicInfoXML(manga *library.Manga) error {
 	_, err = entry.Write(data)
 
 	// save to cache the ComicInfo.xml for future use
-	err = os.WriteFile(filepath.Join(manga.CacheDir(), manga.Metadata.Target, "ComicInfo.xml"), data, 0644)
+	err = os.WriteFile(filepath.Join(manga.CacheDir(), manga.Target, "ComicInfo.xml"), data, 0644)
 	if err != nil {
 		return err
 	}

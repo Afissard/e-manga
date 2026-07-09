@@ -34,9 +34,9 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	manga.LoadMetadata()
 
 	// Compare source and metadata, update if necessary
-	if len(manga.Chapters) != len(manga.Metadata.Chapters) || manga.Metadata.Target != opts.Target.Name {
+	if len(manga.Chapters) != len(manga.Metadata.Chapters) {
 		log.Printf("Metadata are outdated. Updating metadata for manga: %s", mangaName)
-		manga.UpdateMetadata("", "", "", "", opts.Target.Name, false)
+		manga.UpdateMetadata("", "", "", "", false)
 	} else {
 		log.Printf("Metadata are up-to-date for manga: %s", mangaName)
 	}

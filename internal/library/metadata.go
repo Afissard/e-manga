@@ -14,7 +14,6 @@ func (m *Manga) LoadMetadata() error {
 	if os.IsNotExist(err) {
 		m.Metadata = MangaMetadata{
 			Title:    m.Title,
-			Target:   "",
 			Chapters: make(map[string]ChapterMetadata),
 		}
 
@@ -52,7 +51,7 @@ func (m *Manga) Save() error {
 	return os.WriteFile(m.MetadataPath(), data, 0644)
 }
 
-func (m *Manga) UpdateMetadata(author, summary, cover, target, url string, leftToRight bool) error {
+func (m *Manga) UpdateMetadata(author, summary, cover, url string, leftToRight bool) error {
 	if author == "" {
 		author = m.Metadata.Author
 	}
@@ -61,9 +60,6 @@ func (m *Manga) UpdateMetadata(author, summary, cover, target, url string, leftT
 	}
 	if cover == "" {
 		cover = m.Metadata.Cover
-	}
-	if target == "" {
-		target = m.Metadata.Target
 	}
 	if url == "" {
 		url = m.Metadata.URL
@@ -76,7 +72,6 @@ func (m *Manga) UpdateMetadata(author, summary, cover, target, url string, leftT
 	m.Metadata.Author = author
 	m.Metadata.Summary = summary
 	m.Metadata.Cover = cover
-	m.Metadata.Target = target
 	m.Metadata.URL = url
 	m.Metadata.LeftToRight = leftToRight
 	m.Metadata.Chapters = make(map[string]ChapterMetadata)
