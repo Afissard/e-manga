@@ -17,8 +17,8 @@ type NewMangaOptions struct {
 }
 
 func NewManga(opts NewMangaOptions) error {
-	if _, err := os.Stat(config.AppConfig.LibraryPath); os.IsNotExist(err) {
-		return os.MkdirAll(config.AppConfig.LibraryPath, 0755)
+	if _, err := os.Stat(config.Configuration.LibraryPath); os.IsNotExist(err) {
+		return os.MkdirAll(config.Configuration.LibraryPath, 0755)
 	}
 
 	manga := &library.Manga{}

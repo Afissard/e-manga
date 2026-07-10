@@ -2,6 +2,7 @@ package main
 
 import (
 	"e-manga/internal/command"
+	"e-manga/internal/config"
 	"e-manga/internal/tui"
 	"flag"
 	"log"
@@ -9,6 +10,11 @@ import (
 )
 
 func main() {
+	err := config.LoadConfigFile()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if len(os.Args) == 1 {
 		if err := tui.RunTUI(); err != nil {
 			log.Fatal(err)

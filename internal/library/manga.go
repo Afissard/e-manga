@@ -34,19 +34,19 @@ func (m *Manga) Init(title, author, summary, cover, target, url string, leftToRi
 }
 
 func (m *Manga) SourceDir() string {
-	return filepath.Join(config.AppConfig.LibraryPath, m.Title, "source")
+	return filepath.Join(config.Configuration.LibraryPath, m.Title, config.SOURCE_DIR_NAME)
 }
 
 func (m *Manga) CacheDir() string {
-	return filepath.Join(config.AppConfig.LibraryPath, m.Title, "cache")
+	return filepath.Join(config.Configuration.LibraryPath, m.Title, config.CACHE_DIR_NAME)
 }
 
 func (m *Manga) OutputDir() string {
-	return filepath.Join(config.AppConfig.LibraryPath, m.Title, "output")
+	return filepath.Join(config.Configuration.LibraryPath, m.Title, config.OUTPUT_DIR_NAME)
 }
 
 func (m *Manga) MetadataPath() string {
-	return filepath.Join(config.AppConfig.LibraryPath, m.Title, "metadata.json")
+	return filepath.Join(config.Configuration.LibraryPath, m.Title, config.METADATA_FILE_NAME)
 }
 
 func LoadManga(title string) (*Manga, error) {

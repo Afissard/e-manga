@@ -1,0 +1,19 @@
+{
+  "library_path": "library",
+  "targets": [
+    {
+      "name": "Original",
+      "width": 0,
+      "height": 0,
+      "color": true,
+      "auto_rotate": false
+    },
+    {
+      "name": "Kindle Paperwhite 7",
+      "width": 1072,
+      "height": 1448,
+      "color": false,
+      "auto_rotate": true
+    }
+  ]
+}

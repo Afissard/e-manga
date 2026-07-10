@@ -11,19 +11,14 @@ import (
 	"sync"
 )
 
-type Options struct {
-	Target     config.Target
-	AutoRotate bool
-}
-
 type pageResult struct {
 	index int
 	img   image.Image
 	err   error
 }
 
-func ProcessToCBZ(mangaName string, opts Options) error {
-	log.Printf("Processing manga %s to CBZ with options: %+v", mangaName, opts)
+func ProcessToCBZ(mangaName string, target config.Target) error {
+	log.Printf("Processing manga %s to CBZ with options: %+v", mangaName, target)
 
 	// Loading manga
 	manga, err := library.LoadManga(mangaName)
@@ -59,7 +54,7 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		if err != nil {
 			log.Printf("Failed to load cover image %s for manga %s. Skipping cover.", manga.Cover, manga.Title)
 		} else {
-			coverImg = imageTraitment(coverImg, opts)
+			coverImg = imageTraitment(coverImg, target)
 			err := cbz.AddImage("0000.png", coverImg)
 			if err != nil {
 				log.Fatalf("failed to add cover image to CBZ: %v", err)
@@ -80,16 +75,16 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		chapter := chapter
 		for _, filename := range chapter.Images {
 			filename := filename
-            pageIndex := index
+			pageIndex := index
 
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				img, err := GetPageImageToCBZ(manga, &chapter, filename, opts)
+				img, err := GetPageImageToCBZ(manga, &chapter, filename, target)
 				results <- pageResult{index: pageIndex, img: img, err: err}
 			}()
 
-			//GetPageImageToCBZ(manga, &chapter, filename, opts, index, cbz)
+			//GetPageImageToCBZ(manga, &chapter, filename, target, index, cbz)
 			index++
 		}
 		// Update chapter metadata
@@ -102,12 +97,12 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 		wg.Wait()
 		close(results)
 	}()
-	
+
 	// Collect results and add images to CBZ
 	pages := make(map[int]image.Image, index-1)
 	for res := range results {
 		if res.err != nil {
-			log.Fatalf("failed to process image n°%d: %v", res.index, res.err)
+			log.Fatalf("failed to process image n°%d: %v (%d/%d)", res.index, res.err, res.index, index-1)
 		}
 		pages[res.index] = res.img
 	}
@@ -115,10 +110,10 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	for i := 1; i < index; i++ {
 		name := fmt.Sprintf("%06d.png", i)
 		if err := cbz.AddImage(name, pages[i]); err != nil {
-			log.Fatalf("failed to add image %s to CBZ: %v", name, err)
+			log.Fatalf("failed to add image %s to CBZ: %v (%d/%d)", name, err, i, index-1)
 			return err
 		} else {
-			log.Printf("Added image %s to CBZ for manga %s.", name, manga.Title)
+			log.Printf("Added image %s to CBZ for manga %s. (%d/%d)", name, manga.Title, i, index-1)
 		}
 	}
 
@@ -140,11 +135,11 @@ func ProcessToCBZ(mangaName string, opts Options) error {
 	return nil
 }
 
-func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, opts Options) (image.Image, error) {
+func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename string, target config.Target) (image.Image, error) {
 	img, err := manga.LoadImageFromCache(chapter.Name, filename)
 	if err != nil {
 		log.Printf("Failed to load image %s from cache for manga %s, chapter %s.", filename, manga.Title, chapter.Name)
-		log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, opts)
+		log.Printf("Processing image %s from manga %s, chapter %s with options: %+v", filename, manga.Title, chapter.Name, target)
 
 		path := filepath.Join(manga.SourceDir(), chapter.Name, filename)
 
@@ -153,7 +148,7 @@ func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename 
 			return nil, err
 		}
 
-		img = imageTraitment(img, opts)
+		img = imageTraitment(img, target)
 
 		filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".png"
 		manga.SaveImageToCache(chapter.Name, filename, img)
@@ -164,17 +159,17 @@ func GetPageImageToCBZ(manga *library.Manga, chapter *library.Chapter, filename 
 	return img, nil
 }
 
-func imageTraitment(img image.Image, opts Options) image.Image {
-	if !opts.Target.Color {
+func imageTraitment(img image.Image, target config.Target) image.Image {
+	if !target.Color {
 		img = Grayscale(img)
 	}
 
-	if opts.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
+	if target.AutoRotate && img.Bounds().Dx() > img.Bounds().Dy() {
 		img = Rotate90CW(img)
 	}
 
-	if opts.Target.Width > 0 {
-		img = Resize(img, opts.Target.Width, opts.Target.Height)
+	if target.Width > 0 {
+		img = Resize(img, target.Width, target.Height)
 	}
 
 	return img
