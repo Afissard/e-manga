@@ -21,6 +21,7 @@ func ProcessToCBZ(mangaName string, target config.Target) error {
 
 	// Loading manga
 	manga, err := library.LoadManga(mangaName)
+	manga.Target = target.Name
 	if err != nil {
 		config.LogSrv.LogMessage(fmt.Sprintf("Failed to load manga: %v", err), config.LogLevelError)
 		return err

@@ -12,6 +12,7 @@ const (
 	LogLevelError = iota
 	LogLevelWarning
 	LogLevelInfo
+	LogLevelDebug
 
 	LogFolder = "logs"
 )

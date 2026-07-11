@@ -1,6 +1,8 @@
 package library
 
 import (
+	"e-manga/internal/config"
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -8,7 +10,10 @@ import (
 )
 
 func getCachedFilePath(manga *Manga, chapterName, filename string) string {
-	return filepath.Join(manga.CacheDir(), manga.Target, chapterName, filename)
+	filepath := filepath.Join(manga.CacheDir(), manga.Target, chapterName, filename)
+	config.LogSrv.LogMessage(fmt.Sprintf("current Cache file path: %s\nCache directory: %s\nTarget: %s\nChapter: %s\nFilename: %s", filepath, manga.CacheDir(), manga.Target, chapterName, filename), config.LogLevelDebug)
+	return filepath
+	//return filepath.Join(manga.CacheDir(), manga.Target, chapterName, filename)
 }
 
 func (m *Manga) SaveImageToCache(chapterName, filename string, img image.Image) error {
