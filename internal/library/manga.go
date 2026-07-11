@@ -3,7 +3,6 @@ package library
 import (
 	"e-manga/internal/config"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -56,7 +55,7 @@ func LoadManga(title string) (*Manga, error) {
 
 	entries, err := os.ReadDir(manga.SourceDir())
 	if err != nil {
-		log.Printf("Error reading input directory: \"%s\", error: %v\n", manga.SourceDir(), err)
+		config.LogSrv.LogMessage(fmt.Sprintf("Error reading input directory: \"%s\", error: %v", manga.SourceDir(), err), config.LogLevelError)
 		return nil, err
 	}
 
@@ -69,7 +68,7 @@ func LoadManga(title string) (*Manga, error) {
 
 		files, err := os.ReadDir(chapterPath)
 		if err != nil {
-			log.Println("Error reading chapter directory:", err)
+			config.LogSrv.LogMessage(fmt.Sprintf("Error reading chapter directory: \"%s\", error: %v", chapterPath, err), config.LogLevelError)
 			return nil, err
 		}
 
@@ -91,13 +90,13 @@ func LoadManga(title string) (*Manga, error) {
 		var chapterNumber float64 = 0.0
 		match := re.FindStringSubmatch(entry.Name())
 		if match == nil {
-			fmt.Printf("%q -> no match\n", entry.Name())
+			config.LogSrv.LogMessage(fmt.Sprintf("No match found for entry: %q", entry.Name()), config.LogLevelWarning)
 			continue
 		}
 
 		chapterNumber, err = strconv.ParseFloat(match[1], 64)
 		if err != nil {
-			fmt.Println(err)
+			config.LogSrv.LogMessage(fmt.Sprintf("Error parsing chapter number for entry %q: %v", entry.Name(), err), config.LogLevelError)
 			continue
 		}
 

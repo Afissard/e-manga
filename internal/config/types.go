@@ -9,7 +9,10 @@ const (
 	METADATA_FILE_NAME = "metadata.json"
 )
 
-var Configuration = Config{}
+var (
+	Configuration = Config{}
+	LogSrv        *Logger
+)
 
 type Config struct {
 	LibraryPath string   `json:"library_path"`

@@ -2,6 +2,7 @@
 *.zip
 
 # ignore log files
+logs/
 *.log
 
 # ignore library folder

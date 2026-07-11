@@ -1,5 +1,7 @@
 {
   "library_path": "library",
+  "tui_mode": false,
+  "log_level": 2,
   "targets": [
     {
       "name": "Original",

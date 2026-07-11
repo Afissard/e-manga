@@ -10,20 +10,38 @@ import (
 )
 
 func main() {
-	err := config.LoadConfigFile()
+	// logger initialization
+	var err error = nil
+	config.LogSrv, err = config.InitLogger(config.LogLevelInfo)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer config.LogSrv.Close()
+	go config.LogSrv.Run()
 
+	config.LogSrv.LogMessage("Starting e-manga application...", config.LogLevelInfo)
+
+	// Config initialization
+	err = config.LoadConfigFile()
+	if err != nil {
+		config.LogSrv.LogMessage("Error loading config file: "+err.Error(), config.LogLevelError)
+		panic(err)
+	}
+
+	// If no arguments are provided, run the TUI
 	if len(os.Args) == 1 {
+		config.Configuration.TuiMode = true
 		if err := tui.RunTUI(); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error running TUI: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 		return
 	}
 
+	// Handle command-line arguments
 	if len(os.Args) < 2 {
-		log.Fatal("expected 'new-manga' or 'process' subcommands")
+		config.LogSrv.LogMessage("expected 'new-manga' or 'process' subcommands", config.LogLevelError)
+		panic("expected 'new-manga' or 'process' subcommands")
 	}
 
 	switch os.Args[1] {
@@ -38,7 +56,8 @@ func main() {
 		leftToRight := *fs.Bool("left-to-right", false, "Set reading direction to left-to-right")
 
 		if err := fs.Parse(os.Args[2:]); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error parsing flags: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 		opts := command.NewMangaOptions{
@@ -52,7 +71,8 @@ func main() {
 		}
 
 		if err := command.NewManga(opts); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error creating new manga: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 	case "process":
@@ -62,7 +82,8 @@ func main() {
 		target := fs.String("target", "none", "Target device for resizing images")
 
 		if err := fs.Parse(os.Args[2:]); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error parsing flags: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 		opts := command.ProcessMangaOptions{
@@ -71,7 +92,8 @@ func main() {
 		}
 
 		if err := command.ProcessManga(opts); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error processing manga: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 	case "update-metadata":
@@ -85,7 +107,8 @@ func main() {
 		leftToRight := *fs.Bool("left-to-right", false, "Set reading direction to left-to-right")
 
 		if err := fs.Parse(os.Args[2:]); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error parsing flags: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 		opts := command.UpdateMangaMetadataOptions{
@@ -98,11 +121,12 @@ func main() {
 		}
 
 		if err := command.UpdateMangaMetadata(opts); err != nil {
-			log.Fatal(err)
+			config.LogSrv.LogMessage("Error updating manga metadata: "+err.Error(), config.LogLevelError)
+			panic(err)
 		}
 
 	default:
-		log.Fatal("expected 'new-manga' or 'process' subcommands")
-		// TODO: later, load a tui for the app
+		config.LogSrv.LogMessage("expected 'new-manga' or 'process' subcommands", config.LogLevelError)
+		panic("expected 'new-manga' or 'process' subcommands")
 	}
 }

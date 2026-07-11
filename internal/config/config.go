@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -11,10 +10,10 @@ func CreateDefaultConfigFile() error {
 		LibraryPath: "library",
 		Targets: []Target{
 			{
-				Name:   "Original Size",
-				Width:  0,
-				Height: 0,
-				Color:  true,
+				Name:       "Original Size",
+				Width:      0,
+				Height:     0,
+				Color:      true,
 				AutoRotate: false,
 			},
 		},
@@ -68,6 +67,7 @@ func LoadConfigFile() error {
 	}
 
 	Configuration = *cfg
-	log.Printf("Current configuration: %+v", Configuration)
+	//LogSrv.logToConsole = !Configuration.TuiMode
+	//LogSrv.LogMessage("Current configuration: "+fmt.Sprintf("%+v", Configuration), LogLevelInfo)
 	return nil
 }

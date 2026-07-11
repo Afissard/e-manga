@@ -1,8 +1,8 @@
 package library
 
 import (
+	"e-manga/internal/config"
 	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -37,7 +37,7 @@ func (m *Manga) LoadMetadata() error {
 	m.LeftToRight = m.Metadata.LeftToRight
 
 	// Log all Manga info
-	log.Printf("Manga loaded:\nTitle: %s\nAuthor: %s\nSummary: %s\nCover: %s\nURL: %s", m.Title, m.Author, m.Summary, m.Cover, m.URL)
+	config.LogSrv.LogMessage("Manga loaded:\nTitle: "+m.Title+"\nAuthor: "+m.Author+"\nSummary: "+m.Summary+"\nCover: "+m.Cover+"\nURL: "+m.URL, config.LogLevelInfo)
 
 	return nil
 }
@@ -84,4 +84,3 @@ func (m *Manga) UpdateMetadata(author, summary, cover, url string, leftToRight b
 
 	return m.Save()
 }
-
