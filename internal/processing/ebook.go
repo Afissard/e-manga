@@ -9,12 +9,26 @@ later add other formats:
 
 import (
 	"archive/zip"
+	"e-manga/internal/config"
+	"e-manga/internal/library"
 	"image"
 	"io"
+	"os"
+	"path/filepath"
 )
 
 type CBZWriter struct {
 	zip *zip.Writer
+}
+
+func CreateOutputForTarget(manga *library.Manga, target config.Target) error {
+	// Create output directory for the target if it doesn't exist
+	outputDir := filepath.Join(manga.OutputDir(), target.Name)
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewCBZ(w io.Writer) *CBZWriter {

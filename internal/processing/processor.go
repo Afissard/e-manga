@@ -37,7 +37,12 @@ func ProcessToCBZ(mangaName string, target config.Target) error {
 	}
 
 	// Creating output file
-	out, err := os.Create(filepath.Join(manga.OutputDir(), manga.Title+".cbz"))
+	err = CreateOutputForTarget(manga, target)
+	if err != nil {
+		config.LogSrv.LogMessage(fmt.Sprintf("failed to create output directory: %v", err), config.LogLevelError)
+		return err
+	}
+	out, err := os.Create(filepath.Join(manga.OutputDir(), manga.Target, manga.Title+".cbz"))
 	if err != nil {
 		config.LogSrv.LogMessage(fmt.Sprintf("failed to create output file: %v", err), config.LogLevelError)
 		return err
